@@ -1,76 +1,116 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { Search, FileText, Copy } from 'lucide-react';
+import { Search, FileText, Copy, Check, Download } from 'lucide-react';
 
 function App() {
   const [url, setUrl] = useState('');
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleScrape = async () => {
     if (!url) return;
     setLoading(true);
+    setContent('');
     try {
-      // Usando o endereço padrão do Deepcrawl rodando localmente
-      const response = await axios.post('/scrape', { url: url });
-        url: url,
-        options: {
-          extractorFormat: 'markdown' // Formato limpo para professores
-        }
-      });
+      // Usando a API pública do Jina que transforma sites em Markdown para IA
+      // Isso resolve o problema de conexão com o localhost na Vercel
+      const response = await axios.get(`https://r.jina.ai/${url}`);
       
-      // Ajuste: Dependendo da versão do Deepcrawl, o retorno pode estar em response.data.data ou response.data.content
-      const extractedContent = response.data.content || response.data.data || "Conteúdo não encontrado";
-      setContent(extractedContent);
+      if (response.data) {
+        setContent(response.data);
+      } else {
+        alert("Página retornou conteúdo vazio.");
+      }
     } catch (error) {
       console.error("Erro ao extrair:", error);
-      alert("Erro ao conectar com a API. Verifique se o Deepcrawl está rodando na porta 3000.");
+      alert("Erro ao limpar a página. Verifique a URL e tente novamente.");
     }
     setLoading(false);
   };
 
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const downloadTxt = () => {
+    const element = document.createElement("a");
+    const file = new Blob([content], {type: 'text/plain'});
+    element.href = URL.createObjectURL(file);
+    element.download = "conteudo-didatico.md";
+    document.body.appendChild(element);
+    element.click();
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <header className="max-w-4xl mx-auto mb-10">
-        <h1 className="text-3xl font-bold text-indigo-700">Research Companion</h1>
-        <p className="text-gray-600">Transforme qualquer site em conteúdo didático limpo.</p>
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans">
+      <header className="max-w-4xl mx-auto mb-10 text-center">
+        <h1 className="text-4xl font-extrabold text-indigo-700 mb-2">Research Companion</h1>
+        <p className="text-slate-600 text-lg">Apoio ao Professor: Extração de conteúdo web sem anúncios ou lixo visual.</p>
       </header>
 
       <main className="max-w-4xl mx-auto space-y-6">
-        <div className="flex gap-2">
+        {/* Barra de Pesquisa */}
+        <div className="flex flex-col md:flex-row gap-3 bg-white p-2 rounded-2xl shadow-sm border border-slate-200">
           <input 
             type="text" 
-            placeholder="Cole o link do artigo aqui..." 
-            className="flex-1 p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none"
+            placeholder="Cole aqui o link (ex: https://wikipedia.org/...)" 
+            className="flex-1 p-4 rounded-xl text-slate-700 outline-none focus:bg-slate-50 transition"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
           />
           <button 
             onClick={handleScrape}
             disabled={loading}
-            className="bg-indigo-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition"
+            className="bg-indigo-600 text-white px-8 py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-indigo-700 transition disabled:bg-indigo-300 font-bold"
           >
-            {loading ? "Processando..." : <><Search size={20}/> Extrair</>}
+            {loading ? (
+              <span className="animate-pulse">Limpando...</span>
+            ) : (
+              <><Search size={20}/> Extrair Conteúdo</>
+            )}
           </button>
         </div>
 
+        {/* Área de Resultado */}
         {content && (
-          <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-            <div className="flex justify-between items-center mb-4 border-b pb-2">
-              <h2 className="text-xl font-semibold flex items-center gap-2"><FileText size={20}/> Conteúdo Limpo</h2>
-              <button 
-                onClick={() => navigator.clipboard.writeText(content)}
-                className="text-indigo-600 hover:bg-indigo-50 p-2 rounded-full"
-              >
-                <Copy size={20}/>
-              </button>
+          <div className="bg-white rounded-2xl shadow-xl border border-indigo-100 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex justify-between items-center bg-indigo-50 px-6 py-4 border-b border-indigo-100">
+              <h2 className="text-indigo-900 font-bold flex items-center gap-2">
+                <FileText size={20}/> Texto Higienizado
+              </h2>
+              <div className="flex gap-2">
+                <button 
+                  onClick={copyToClipboard}
+                  title="Copiar texto"
+                  className="bg-white text-indigo-600 p-2 rounded-lg border border-indigo-200 hover:bg-indigo-100 transition flex items-center gap-1 text-sm font-medium"
+                >
+                  {copied ? <><Check size={18}/> Copiado!</> : <><Copy size={18}/> Copiar</>}
+                </button>
+                <button 
+                  onClick={downloadTxt}
+                  title="Baixar Markdown"
+                  className="bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 transition flex items-center gap-1 text-sm font-medium"
+                >
+                  <Download size={18}/> Baixar .md
+                </button>
+              </div>
             </div>
-            <pre className="whitespace-pre-wrap text-gray-800 font-sans leading-relaxed">
-              {content}
-            </pre>
+            
+            <div className="p-8 max-h-[60vh] overflow-y-auto">
+              <pre className="whitespace-pre-wrap text-slate-800 leading-relaxed font-sans text-base">
+                {content}
+              </pre>
+            </div>
           </div>
         )}
       </main>
+
+      <footer className="max-w-4xl mx-auto mt-12 text-center text-slate-400 text-sm">
+        <p>Desenvolvido para facilitar a curadoria de materiais didáticos.</p>
+      </footer>
     </div>
   );
 }
