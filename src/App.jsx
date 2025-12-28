@@ -9,7 +9,6 @@ function App() {
   const [copied, setCopied] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
 
-  // Lógica para detectar se o app pode ser instalado (PWA)
   useEffect(() => {
     const handler = (e) => {
       e.preventDefault();
@@ -23,9 +22,7 @@ function App() {
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        setDeferredPrompt(null);
-      }
+      if (outcome === 'accepted') setDeferredPrompt(null);
     }
   };
 
@@ -34,16 +31,10 @@ function App() {
     setLoading(true);
     setContent('');
     try {
-      // Usando a API pública do Jina para extração limpa
       const response = await axios.get(`https://r.jina.ai/${url}`);
-      if (response.data) {
-        setContent(response.data);
-      } else {
-        alert("O site não retornou conteúdo.");
-      }
+      setContent(response.data);
     } catch (error) {
-      console.error("Erro:", error);
-      alert("Não foi possível acessar este site. Verifique o link.");
+      alert("Não foi possível extrair o conteúdo. Verifique o link.");
     }
     setLoading(false);
   };
@@ -58,40 +49,39 @@ function App() {
     const element = document.createElement("a");
     const file = new Blob([content], { type: 'text/plain' });
     element.href = URL.createObjectURL(file);
-    element.download = "material-didatico.md";
+    element.download = "material-pesquisa.md";
     document.body.appendChild(element);
     element.click();
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100">
-      {/* Barra de progresso decorativa no topo */}
-      <div className="fixed top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 z-50"></div>
-      
-      <div className="max-w-5xl mx-auto px-4 py-12">
-        {/* Header Profissional */}
-        <header className="text-center mb-16 space-y-4">
-          <div className="inline-flex items-center justify-center p-3 bg-indigo-100 text-indigo-600 rounded-2xl mb-4">
-            <BookOpen size={32} />
+    <div className="min-h-screen bg-[#121212] text-white font-sans selection:bg-indigo-500/30">
+      {/* Detalhe de luz no fundo */}
+      <div className="fixed top-[-10%] left-[50%] translate-x-[-50%] w-[600px] h-[400px] bg-indigo-600/20 blur-[120px] rounded-full -z-10"></div>
+
+      <div className="max-w-5xl mx-auto px-6 py-16">
+        {/* Header Traduzido */}
+        <header className="text-center mb-16 animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="inline-flex items-center justify-center p-3 bg-indigo-500/10 text-indigo-400 rounded-2xl mb-6 border border-indigo-500/20">
+            <BookOpen size={40} />
           </div>
-          <h1 className="text-5xl font-black tracking-tight text-slate-900 md:text-6xl">
-            Research <span className="text-indigo-600">Companion</span>
+          <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-4">
+            Assistente de <span className="bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent">Pesquisa</span>
           </h1>
-          <p className="text-slate-500 text-lg max-w-2xl mx-auto font-medium">
-            Ferramenta de apoio ao professor. Transforme qualquer artigo da web em material didático limpo.
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed">
+            Ferramenta de apoio ao professor. Transforme artigos da web em material didático limpo, sem anúncios e pronto para aula.
           </p>
         </header>
 
-        {/* Campo de Busca (Input) */}
-        <section className="relative max-w-3xl mx-auto mb-12">
-          <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl blur opacity-20"></div>
-          <div className="relative bg-white p-2 rounded-2xl shadow-xl border border-slate-200 flex flex-col md:flex-row gap-2">
-            <div className="flex-1 flex items-center px-4 gap-3 text-slate-400 focus-within:text-indigo-500 transition-colors">
-              <Globe size={20} />
+        {/* Barra de Pesquisa Estilizada */}
+        <section className="max-w-3xl mx-auto mb-16">
+          <div className="bg-[#1e1e1e] p-2 rounded-2xl border border-white/10 shadow-2xl flex flex-col md:flex-row gap-2 transition-all focus-within:border-indigo-500/50">
+            <div className="flex-1 flex items-center px-4 gap-3 text-gray-500">
+              <Globe size={22} />
               <input 
                 type="text" 
                 placeholder="Cole o link do artigo aqui..." 
-                className="w-full py-4 bg-transparent text-slate-700 font-medium outline-none"
+                className="w-full py-4 bg-transparent text-white outline-none placeholder:text-gray-600"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
               />
@@ -99,81 +89,69 @@ function App() {
             <button 
               onClick={handleScrape}
               disabled={loading}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+              className="bg-indigo-600 hover:bg-indigo-500 text-white px-10 py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-indigo-600/20"
             >
-              {loading ? "Processando..." : <><Sparkles size={20}/> Extrair Conteúdo</>}
+              {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <><Sparkles size={20}/> Extrair Conteúdo</>}
             </button>
           </div>
         </section>
 
-        {/* Banner de Instalação PWA (Aparece no Zorin OS/Chrome) */}
+        {/* Banner PWA Traduzido */}
         {deferredPrompt && (
-          <div className="max-w-3xl mx-auto mb-8 p-4 bg-indigo-50 border border-indigo-100 rounded-2xl flex justify-between items-center shadow-sm animate-in slide-in-from-top-4 duration-500">
+          <div className="max-w-3xl mx-auto mb-12 p-4 bg-indigo-600/10 border border-indigo-500/30 rounded-2xl flex justify-between items-center animate-pulse">
             <div className="flex items-center gap-3">
-              <div className="bg-indigo-600 text-white p-2 rounded-lg">
-                <DownloadCloud size={20} />
-              </div>
-              <div>
-                <p className="text-indigo-900 font-bold text-sm">Usar como Aplicativo?</p>
-                <p className="text-indigo-700 text-xs">Instale no seu Zorin OS para acesso rápido.</p>
-              </div>
+              <DownloadCloud className="text-indigo-400" size={24} />
+              <p className="text-indigo-100 font-medium">Deseja instalar como aplicativo no Zorin OS?</p>
             </div>
-            <button 
-              onClick={handleInstallClick}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-indigo-700 transition shadow-md shadow-indigo-200"
-            >
-              Instalar
-            </button>
+            <button onClick={handleInstallClick} className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-500 transition shadow-lg">Instalar</button>
           </div>
         )}
 
-        {/* Resultado da Extração */}
-        {content ? (
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-500">
-            <div className="flex flex-col md:flex-row justify-between items-center px-8 py-6 bg-slate-50 border-b border-slate-200 gap-4">
-              <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                <FileText className="text-indigo-600" size={20} /> Texto Higienizado
-              </h2>
-              <div className="flex gap-3 w-full md:w-auto">
-                <button 
-                  onClick={copyToClipboard}
-                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all shadow-sm"
-                >
-                  {copied ? <Check className="text-green-600" size={18}/> : <Copy size={18}/>}
-                  {copied ? "Copiado!" : "Copiar"}
-                </button>
-                <button 
-                  onClick={downloadTxt}
-                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
-                >
-                  <Download size={18}/> Baixar .md
-                </button>
-              </div>
-            </div>
-            <div className="p-8 md:p-12 max-h-[60vh] overflow-y-auto">
-              <pre className="whitespace-pre-wrap text-slate-700 font-sans text-lg leading-relaxed antialiased">
-                {content}
-              </pre>
-            </div>
-          </div>
-        ) : !loading && (
-          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto text-center opacity-50 mt-12">
+        {/* Cards Informativos */}
+        {!content && !loading && (
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             {[
-              { icon: <Globe />, text: "Cole qualquer link" },
-              { icon: <Sparkles />, text: "Limpeza automática" },
-              { icon: <FileText />, text: "Pronto para sua aula" }
-            ].map((item, idx) => (
-              <div key={idx} className="flex flex-col items-center gap-2">
-                <div className="p-4 bg-slate-100 rounded-full text-indigo-500">{item.icon}</div>
-                <p className="text-sm font-semibold">{item.text}</p>
+              { icon: <Globe />, title: "Cole qualquer link", desc: "Funciona com blogs, notícias e portais educativos." },
+              { icon: <Sparkles />, title: "Limpeza I.A.", desc: "Removemos menus, banners e poluição visual automaticamente." },
+              { icon: <FileText />, title: "Pronto para Aula", desc: "Copie o texto limpo para seus slides ou documentos." }
+            ].map((item, i) => (
+              <div key={i} className="p-8 rounded-3xl bg-[#1e1e1e]/50 border border-white/5 text-center hover:bg-[#1e1e1e] transition-colors">
+                <div className="text-indigo-400 flex justify-center mb-4">{item.icon}</div>
+                <h3 className="font-bold mb-2">{item.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
         )}
+
+        {/* Resultado */}
+        {content && (
+          <div className="bg-[#1e1e1e] rounded-3xl border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-500">
+            <div className="flex flex-col md:flex-row justify-between items-center px-8 py-6 bg-white/5 border-b border-white/5 gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-indigo-500/20 text-indigo-400 rounded-lg"><FileText size={20} /></div>
+                <h2 className="text-lg font-bold">Conteúdo Processado</h2>
+              </div>
+              <div className="flex gap-3 w-full md:w-auto">
+                <button onClick={copyToClipboard} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-[#2a2a2a] border border-white/10 rounded-xl hover:bg-[#333] transition-all">
+                  {copied ? <Check size={18} className="text-green-400"/> : <Copy size={18}/>} {copied ? "Copiado!" : "Copiar Texto"}
+                </button>
+                <button onClick={downloadTxt} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-500 transition-all">
+                  <Download size={18}/> Baixar .MD
+                </button>
+              </div>
+            </div>
+            <div className="p-8 md:p-12 max-h-[60vh] overflow-y-auto custom-scrollbar">
+              <pre className="whitespace-pre-wrap text-gray-300 font-sans text-lg leading-relaxed antialiased">
+                {content}
+              </pre>
+            </div>
+          </div>
+        )}
       </div>
 
-      <footer className="py-12 text-center text-slate-400 text-sm">
-        <p>Research Companion &copy; 2025 | Ferramenta Gratuita para Educadores</p>
+      <footer className="py-12 text-center text-gray-600 text-sm border-t border-white/5 mt-12">
+        <p>Assistente de Pesquisa &copy; 2025 | Desenvolvido para Educadores</p>
       </footer>
     </div>
   );
